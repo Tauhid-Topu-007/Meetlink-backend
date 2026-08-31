@@ -299,7 +299,7 @@ exports.analytics = async (req, res, next) => {
         { $sort: { _id: 1 } },
       ]),
       Meeting.aggregate([
-        { $match: { createdAt: { $gte: new Date(Date.now() - 30 * 86400000) } },
+        { $match: { createdAt: { $gte: new Date(Date.now() - 30 * 86400000) } } },
         { $group: { _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } }, minutes: { $sum: '$durationMinutes' } } },
         { $sort: { _id: 1 } },
       ]),
