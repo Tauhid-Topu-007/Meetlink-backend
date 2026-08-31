@@ -1,9 +1,19 @@
 const meetingService = require('../services/meeting.service');
 const Meeting = require('../models/Meeting');
+const { getSetting } = require('../middleware/systemGuard');
 
 exports.create = async (req, res, next) => {
   try {
-    const meeting = await meetingService.createMeeting(req.user, req.body);
+    const allowNewMeetings = await getSetting('allowNewMeetings', true);
+    if (!allowNewMeetings && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, code: 'NEW_MEETINGS_DISABLED', message: 'New meetings are currently disabled.' });
+    }
+    const maxMeetingParticipants = await getSetting('maxMeetingParticipants', 0);
+    const payload = { ...req.body };
+    if (maxMeetingParticipants > 0) {
+      payload.settings = { ...(payload.settings || {}), maxParticipants: maxMeetingParticipants };
+    }
+    const meeting = await meetingService.createMeeting(req.user, payload);
     res.status(201).json({
       success: true,
       meeting: {
