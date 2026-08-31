@@ -1,6 +1,7 @@
 const Group = require('../models/Group');
 const Meeting = require('../models/Meeting');
 const meetingService = require('../services/meeting.service');
+const { getSetting } = require('../middleware/systemGuard');
 
 function normalizeMembers(members) {
   if (!Array.isArray(members)) return [];
@@ -103,6 +104,10 @@ const remove = async (req, res, next) => {
 
 const scheduleMeeting = async (req, res, next) => {
   try {
+    const allowNewMeetings = await getSetting('allowNewMeetings', true);
+    if (!allowNewMeetings && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, code: 'NEW_MEETINGS_DISABLED', message: 'New meetings are currently disabled.' });
+    }
     const group = await Group.findOne({ _id: req.params.id, ownerId: req.user._id });
     if (!group) return res.status(404).json({ success: false, message: 'Group not found' });
 

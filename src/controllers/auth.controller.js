@@ -1,8 +1,13 @@
 const authService = require('../services/auth.service');
 const User = require('../models/User');
+const { getSetting } = require('../middleware/systemGuard');
 
 exports.register = async (req, res, next) => {
   try {
+    const allowRegistrations = await getSetting('allowRegistrations', true);
+    if (!allowRegistrations) {
+      return res.status(403).json({ success: false, code: 'REGISTRATION_DISABLED', message: 'New registrations are currently disabled.' });
+    }
     const { username, email, password, displayName, phone } = req.body;
     const result = await authService.register({ username, email, password, displayName, phone });
     res.status(201).json({ success: true, ...result });

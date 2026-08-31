@@ -10,6 +10,9 @@ const path = require('path');
 const config = require('./src/config');
 const connectDB = require('./src/config/database');
 const errorHandler = require('./src/middleware/errorHandler');
+const { optionalAuth, requireRole } = require('./src/middleware/auth');
+const { maintenanceGuard } = require('./src/middleware/systemGuard');
+
 const socketHandler = require('./src/socket/socketHandler');
 
 const authRoutes = require('./src/routes/auth.routes');
@@ -18,6 +21,7 @@ const notificationRoutes = require('./src/routes/notification.routes');
 const attendanceRoutes = require('./src/routes/attendance.routes');
 const chatRoutes = require('./src/routes/chat.routes');
 const groupRoutes = require('./src/routes/group.routes');
+const adminRoutes = require('./src/routes/admin.routes');
 
 const app = express();
 const server = http.createServer(app);
@@ -67,6 +71,7 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 app.use('/api/', limiter);
+app.use('/api', optionalAuth, maintenanceGuard);
 
 // DB
 connectDB();
@@ -81,6 +86,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/groups', groupRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/health', (req, res) => {
   res.json({
