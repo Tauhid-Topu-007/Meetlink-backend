@@ -117,6 +117,9 @@ exports.updateUser = async (req, res, next) => {
     if (String(user._id) === String(req.user._id) && req.body.role && req.body.role !== 'admin') {
       return res.status(400).json({ success: false, message: 'You cannot remove your own admin role.' });
     }
+    if (String(user._id) === String(req.user._id) && req.body.isActive === false) {
+      return res.status(400).json({ success: false, message: 'You cannot deactivate your own admin account.' });
+    }
 
     if (req.body.role !== undefined) {
       if (!['user', 'admin', 'moderator'].includes(req.body.role)) {
